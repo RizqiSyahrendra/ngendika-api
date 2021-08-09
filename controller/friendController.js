@@ -35,16 +35,41 @@ export const removeFriend = asyncHandler(async(req, res) => {
     let user_id = req.body.user_id;
     let friend_id = req.body.friend_id;
 
-    await db.query("delete from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
+    const deleted = await db.query("delete from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
         user_id,
         friend_id,
         friend_id,
         user_id
     ]);
 
+    if (deleted.affectedRows <= 0) {
+        res.status(404);
+        throw new Error('friends not found');
+    }
+
     return res.json({
         success: true, 
         message: 'remove friend success'
+    });
+});
+
+export const confirmFriend = asyncHandler(async(req, res) => {
+    let user_id = req.body.user_id;
+    let friend_id = req.body.friend_id;
+
+    const updated = await db.query("update friends set status=1 where user_id = ? and friend_id = ?", [
+        user_id,
+        friend_id
+    ]);
+
+    if (updated.affectedRows <= 0) {
+        res.status(404);
+        throw new Error('friends not found');
+    }
+
+    return res.json({
+        success: true, 
+        message: 'confirm friend success'
     });
 });
 
