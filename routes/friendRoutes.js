@@ -3,7 +3,7 @@ import {jwtTokenMiddleware} from '../middleware/authMiddleware.js';
 import { 
     addFriend, removeFriend,
     confirmFriend, getFriendRequest,
-    getFriendSuggestion
+    getFriendSuggestion, getFriends
 } from '../controller/friendController.js';
 
 const router = express.Router();
@@ -11,7 +11,8 @@ const router = express.Router();
 router.post('/add', [jwtTokenMiddleware], addFriend);   
 router.put('/confirm', [jwtTokenMiddleware], confirmFriend);   
 router.delete('/remove', [jwtTokenMiddleware], removeFriend);   
-router.get('/request', [jwtTokenMiddleware], getFriendRequest);   
-router.get('/suggestion', [jwtTokenMiddleware], getFriendSuggestion);   
+router.post('/request', [jwtTokenMiddleware], getFriendRequest);   
+router.post('/suggestion', [jwtTokenMiddleware], getFriendSuggestion);   
+router.post('/', [jwtTokenMiddleware], getFriends);   
 
 export default router;

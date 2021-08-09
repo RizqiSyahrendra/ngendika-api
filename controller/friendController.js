@@ -76,10 +76,11 @@ export const confirmFriend = asyncHandler(async(req, res) => {
 export const getFriendRequest = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
     const friendReq = await db.query(`
-        select *
-        from friends
-        where friend_id = ?
-        and status = 0
+        select b.id, b.email, b.name, b.avatar
+        from friends a
+        join users b on a.user_id = b.id
+        where a.friend_id = ?
+        and a.status = 0
     `, [
         user_id
     ]);
@@ -95,8 +96,7 @@ export const getFriendSuggestion = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
 
     const friendSuggestion = await db.query(`
-        SELECT a.*,
-        b.status
+        SELECT a.id, a.email, a.name, a.avatar
         FROM users a
         LEFT JOIN friends b ON b.user_id = ? AND b.friend_id = a.id
         WHERE id <> ?
@@ -111,5 +111,26 @@ export const getFriendSuggestion = asyncHandler(async(req, res) => {
         success: true, 
         message: 'get friend suggestion success',
         data: friendSuggestion
+    });
+});
+
+export const getFriends = asyncHandler(async(req, res) => {
+    let user_id = req.user_login.id;
+
+    const friends = await db.query(`
+        SELECT b.id, b.email, b.name, b.avatar
+        FROM friends a
+        JOIN users b ON IF(a.user_id = ?, a.friend_id, a.user_id) = b.id
+        WHERE a.status=1 AND (a.user_id = ? OR a.friend_id = ?)
+    `, [
+        user_id,
+        user_id,
+        user_id
+    ]);
+
+    return res.json({
+        success: true, 
+        message: 'get friends success',
+        data: friends
     });
 });
