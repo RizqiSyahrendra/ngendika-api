@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const addFriend = asyncHandler(async(req, res) => {
-    let user_id = req.body.user_id;
+    let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
 
     const availables = await db.query("select * from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
@@ -32,7 +32,7 @@ export const addFriend = asyncHandler(async(req, res) => {
 });
 
 export const removeFriend = asyncHandler(async(req, res) => {
-    let user_id = req.body.user_id;
+    let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
 
     const deleted = await db.query("delete from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
@@ -54,7 +54,7 @@ export const removeFriend = asyncHandler(async(req, res) => {
 });
 
 export const confirmFriend = asyncHandler(async(req, res) => {
-    let user_id = req.body.user_id;
+    let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
 
     const updated = await db.query("update friends set status=1 where user_id = ? and friend_id = ?", [
@@ -74,7 +74,7 @@ export const confirmFriend = asyncHandler(async(req, res) => {
 });
 
 export const getFriendRequest = asyncHandler(async(req, res) => {
-    let user_id = req.body.user_id;
+    let user_id = req.user_login.id;
     const friendReq = await db.query(`
         select *
         from friends
@@ -88,5 +88,28 @@ export const getFriendRequest = asyncHandler(async(req, res) => {
         success: true, 
         message: 'get friend request success',
         data: friendReq
+    });
+});
+
+export const getFriendSuggestion = asyncHandler(async(req, res) => {
+    let user_id = req.user_login.id;
+
+    const friendSuggestion = await db.query(`
+        SELECT a.*,
+        b.status
+        FROM users a
+        LEFT JOIN friends b ON b.user_id = ? AND b.friend_id = a.id
+        WHERE id <> ?
+        AND b.status IS NULL
+        LIMIT 5
+    `, [
+        user_id,
+        user_id
+    ]);
+
+    return res.json({
+        success: true, 
+        message: 'get friend suggestion success',
+        data: friendSuggestion
     });
 });

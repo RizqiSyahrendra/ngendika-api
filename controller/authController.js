@@ -133,7 +133,7 @@ export const sendVerification = asyncHandler(async(req, res) => {
 });
 
 export const getUser = asyncHandler(async(req, res) => {
-    const id = req.body.id
+    const id = req.user_login.id
     const users = await db.query("select * from users where id=?", [id]);
     if (users.length <= 0) {
         res.status(404);
@@ -150,7 +150,7 @@ export const getUser = asyncHandler(async(req, res) => {
 });
 
 export const updateUser = asyncHandler(async(req, res) => {
-    const id = req.body.id
+    const id = req.user_login.id
     const users = await db.query("select * from users where id=?", [id]);
     if (users.length <= 0) {
         res.status(404);
