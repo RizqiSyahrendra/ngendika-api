@@ -8,6 +8,7 @@ import wsHandler from './wsHandler.js';
 
 import welcomeRoutes from './routes/welcomeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import friendRoutes from './routes/friendRoutes.js';
 
 const app = express();
 const server = http.Server(app);
@@ -21,6 +22,7 @@ app.use(bodyParser.json());
 //routes
 app.use('/', welcomeRoutes);
 app.use('/auth', authRoutes);
+app.use('/friend', friendRoutes);
 
 //error middlewares
 app.use(errorMiddleware);
