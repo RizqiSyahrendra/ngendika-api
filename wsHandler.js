@@ -28,7 +28,13 @@ const listen = (io) => {
         socket.join(socket.email);
 
         socket.on('private-message', ({to, message}) => {
-            io.sockets.in(to.email).emit('private-message', {to, message});
+            io.sockets.in(to.email).emit('private-message-incoming', {
+                from: {
+                    user_id: socket.user_id,
+                    email: socket.email
+                }, 
+                message
+            });
         });
     });
 }
