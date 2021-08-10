@@ -8,7 +8,7 @@ export const addFriend = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
 
-    const availables = await db.query("select * from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
+    const availables = await db.query("select * from friends where (user_id = ? and friend_id = ?) or (user_id = ? and friend_id = ?)", [
         user_id,
         friend_id,
         friend_id,
@@ -34,8 +34,8 @@ export const addFriend = asyncHandler(async(req, res) => {
 export const removeFriend = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
-
-    const deleted = await db.query("delete from friends where (user_id = ? and friend_id = ?) or (friend_id = ? and user_id = ?)", [
+    
+    const deleted = await db.query("delete from friends where (user_id = ? and friend_id = ?) or (user_id = ? and friend_id = ?)", [
         user_id,
         friend_id,
         friend_id,
@@ -58,8 +58,8 @@ export const confirmFriend = asyncHandler(async(req, res) => {
     let friend_id = req.body.friend_id;
 
     const updated = await db.query("update friends set status=1 where user_id = ? and friend_id = ?", [
-        user_id,
-        friend_id
+        friend_id,
+        user_id
     ]);
 
     if (updated.affectedRows <= 0) {
@@ -98,11 +98,12 @@ export const getFriendSuggestion = asyncHandler(async(req, res) => {
     const friendSuggestion = await db.query(`
         SELECT a.id, a.email, a.name, a.avatar
         FROM users a
-        LEFT JOIN friends b ON b.user_id = ? AND b.friend_id = a.id
+        LEFT JOIN friends b ON (b.user_id = ? AND b.friend_id = a.id) OR (b.user_id = a.id AND b.friend_id = ?)
         WHERE id <> ?
         AND b.status IS NULL
         LIMIT 5
     `, [
+        user_id,
         user_id,
         user_id
     ]);
