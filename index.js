@@ -9,6 +9,7 @@ import wsHandler from './wsHandler.js';
 import welcomeRoutes from './routes/welcomeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 const app = express();
 const server = http.Server(app);
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 app.use('/', welcomeRoutes);
 app.use('/auth', authRoutes);
 app.use('/friend', friendRoutes);
+app.use('/chat', chatRoutes);
 
 //error middlewares
 app.use(errorMiddleware);
