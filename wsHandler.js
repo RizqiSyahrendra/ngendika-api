@@ -12,11 +12,23 @@ const wsHandler = (server) => {
 };
 
 const listen = (io) => {
-    io.on('connection', (socket) => {
-        console.log('a user connected');
-    
-        socket.on('chat', (msg) => {
-            io.emit('chat-masuk', msg);
+    io.use((socket, next) => {
+        const { id, email } = socket.handshake.auth;
+        if (!email) {
+            return next(new Error('invalid email'));
+        }
+        
+        socket.user_id = id;
+        socket.email = email;
+        return next();
+    });
+
+    io.sockets.on('connection', (socket) => {
+        console.log(socket.email + ' joined');
+        socket.join(socket.email);
+
+        socket.on('private-message', ({to, message}) => {
+            io.sockets.in(to.email).emit('private-message', {to, message});
         });
     });
 }
