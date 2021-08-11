@@ -21,6 +21,21 @@ export const insertChat = asyncHandler(async(req, res) => {
     });
 });
 
+export const updateUnread = asyncHandler(async(req, res) => {
+    let user_id = req.body.user_id;
+    let unread = req.body.unread;
+
+   await db.query("update users set unread = ? where id = ?", [
+        unread,
+        user_id
+    ]);
+
+    return res.status(200).json({
+        success: true, 
+        message: 'unread message updated successfully'
+    });
+});
+
 export const getChats = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
     let friend_id = req.body.friend_id;
