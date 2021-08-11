@@ -13,6 +13,6 @@ router.post('/login', [apiTokenMiddleware], login);
 router.post('/logout', [jwtTokenMiddleware], logout);
 router.post('/send-verification', [jwtTokenMiddleware], sendVerification);
 router.post('/get-user', [jwtTokenMiddleware], getUser);
-router.post('/update-user', [jwtTokenMiddleware], updateUser);
+router.put('/update-user', [jwtTokenMiddleware], updateUser);
 
 export default router;
