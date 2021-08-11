@@ -12,7 +12,7 @@ export const login = asyncHandler(async(req, res) => {
     let email = req.body.email;
     let password = ""+req.body.password;
 
-    const result = await db.query("select * from users where email=?", [
+    const result = await db.query("select * from users where email=? and status=1", [
         email
     ]);
 
@@ -122,7 +122,7 @@ export const verify = asyncHandler(async(req, res) => {
 });
 
 export const sendVerification = asyncHandler(async(req, res) => {
-    const id = req.body.id
+    const id = req.body.id;
     const host = req.get('host');
     await sendEmail(host, id);
 
@@ -133,7 +133,7 @@ export const sendVerification = asyncHandler(async(req, res) => {
 });
 
 export const getUser = asyncHandler(async(req, res) => {
-    const id = req.user_login.id
+    const id = req.user_login.id;
     const users = await db.query("select * from users where id=?", [id]);
     if (users.length <= 0) {
         res.status(404);
@@ -150,8 +150,8 @@ export const getUser = asyncHandler(async(req, res) => {
 });
 
 export const updateUser = asyncHandler(async(req, res) => {
-    const id = req.user_login.id
-    const users = await db.query("select * from users where id=?", [id]);
+    const id = req.user_login.id;
+    const users = await db.query("select * from users where id=? and status=1", [id]);
     if (users.length <= 0) {
         res.status(404);
         throw new Error('user not found');
@@ -173,6 +173,46 @@ export const updateUser = asyncHandler(async(req, res) => {
         success: true, 
         message: "profile has been updated successfully",
         data: {...updatedUsers[0]}
+    });
+});
+
+export const updatePassword = asyncHandler(async(req, res) => {
+    const id = req.user_login.id;
+    const oldPassword = req.body.old_password;
+    const newPassword = req.body.new_password;
+    const newPasswordConfirm = req.body.new_password_confirm;
+
+    if (newPassword !== newPasswordConfirm) {
+        res.status(400);
+        throw new Error("new password and new password confirmation doesn't match");
+    }
+
+    const users = await db.query("select * from users where id=? and status = 1", [id]);
+    if (users.length <= 0) {
+        res.status(404);
+        throw new Error('user not found');
+    }
+
+    const user = users[0];
+    const match = await bcrypt.compare(oldPassword, user.password);
+    if (!match) {
+        res.status(400);
+        throw new Error("old password doesn't match");
+    }
+
+    const updated = await db.query(`update users set password = ?, updated_at=now() where id = ?`, [
+        bcrypt.hashSync(newPassword, 10),
+        id
+    ]);
+
+    if (updated.affectedRows <= 0) {
+        res.status(500);
+        throw new Error("something went wrong");
+    }
+
+    return res.json({
+        success: true, 
+        message: "password has been updated successfully"
     });
 });
 
