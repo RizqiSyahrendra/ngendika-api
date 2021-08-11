@@ -18,6 +18,7 @@ dotenv.config();
 
 //middlewares
 app.use(cors());
+app.use(express.static('public'));
 app.use(bodyParser.json());
 
 //routes

@@ -161,7 +161,12 @@ export const updateUser = asyncHandler(async(req, res) => {
     const name = req.body.name ? req.body.name : user.name;
     const password = req.body.password ? bcrypt.hashSync(""+req.body.password.trim(), 10) : user.password;
 
-    await db.query("update users set name = ?, password = ?, updated_at=now() where id = ?", [name, password, id]);
+    let paramUpdate = [name, password, id];
+    if (req.file) {
+        paramUpdate = [name, password, req.file.filename, id];
+    }
+
+    await db.query(`update users set name = ?, password = ? ${req.file ? ', avatar = ?' : ''}, updated_at=now() where id = ?`, paramUpdate);
     const updatedUsers = await db.query("select * from users where id=?", [id]);
 
     return res.json({
