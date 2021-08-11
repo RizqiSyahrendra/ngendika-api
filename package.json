@@ -19,6 +19,7 @@
     "express-async-handler": "^1.1.4",
     "jsonwebtoken": "^8.5.1",
     "md5": "^2.3.0",
+    "multer": "^1.4.3",
     "mysql": "^2.18.1",
     "nodemailer": "^6.6.3",
     "socket.io": "^4.1.3",

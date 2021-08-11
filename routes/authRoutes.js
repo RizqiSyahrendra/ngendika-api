@@ -4,6 +4,7 @@ import {
     login, register, verify, 
     logout, sendVerification, getUser, updateUser 
 } from '../controller/authController.js';
+import upload from '../helper/upload.js';
 
 const router = express.Router();
 
@@ -13,6 +14,6 @@ router.post('/login', [apiTokenMiddleware], login);
 router.post('/logout', [jwtTokenMiddleware], logout);
 router.post('/send-verification', [jwtTokenMiddleware], sendVerification);
 router.post('/get-user', [jwtTokenMiddleware], getUser);
-router.put('/update-user', [jwtTokenMiddleware], updateUser);
+router.put('/update-user', [upload.single('avatar'), jwtTokenMiddleware], updateUser);
 
 export default router;
