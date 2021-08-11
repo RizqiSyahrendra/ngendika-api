@@ -119,11 +119,12 @@ export const getFriends = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
 
     const friends = await db.query(`
-        SELECT b.id, b.email, b.name, b.avatar, b.unread_chat
+        SELECT b.id, b.email, b.name, b.avatar, if(a.user_id = ?, a.unread_user, a.unread_friend) as unread_chat
         FROM friends a
         JOIN users b ON IF(a.user_id = ?, a.friend_id, a.user_id) = b.id
         WHERE a.status=1 AND (a.user_id = ? OR a.friend_id = ?)
     `, [
+        user_id,
         user_id,
         user_id,
         user_id

@@ -22,12 +22,26 @@ export const insertChat = asyncHandler(async(req, res) => {
 });
 
 export const updateUnread = asyncHandler(async(req, res) => {
-    let user_id = req.body.user_id;
+    let user_id = req.user_login.id;
+    let friend_id = req.body.friend_id;
     let unread = req.body.unread;
 
-   await db.query("update users set unread = ? where id = ?", [
+   await db.query(`
+        UPDATE friends 
+        SET unread_user = IF((user_id = ? AND friend_id = ?), ?, unread_user),
+        unread_friend = IF((friend_id = ? AND user_id = ?), ?, unread_friend)
+        WHERE (user_id = ? AND friend_id = ?) OR (friend_id = ? OR user_id = ?)
+   `, [
+        user_id,
+        friend_id,
         unread,
-        user_id
+        user_id,
+        friend_id,
+        unread,
+        user_id,
+        friend_id,
+        user_id,
+        friend_id
     ]);
 
     return res.status(200).json({
