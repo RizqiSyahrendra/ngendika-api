@@ -1,8 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import db from '../config/database.js';
+import { mysql as named } from 'yesql';
 import dotenv from 'dotenv';
-import ESClient from '../config/elasticsearch.js';
-
 dotenv.config();
 
 export const addFriend = asyncHandler(async(req, res) => {
@@ -95,61 +94,82 @@ export const getFriendRequest = asyncHandler(async(req, res) => {
 
 export const getFriendSuggestion = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
+    let keyword = req.body.s ? req.body.s : '';
     let from = req.body.from;
     let size = req.body.size;
 
-    // const friendSuggestion = await db.query(`
-    //     SELECT a.id, a.email, a.name, a.avatar
-    //     FROM users a
-    //     LEFT JOIN friends b ON (b.user_id = ? AND b.friend_id = a.id) OR (b.user_id = a.id AND b.friend_id = ?)
-    //     WHERE id <> ?
-    //     AND b.status IS NULL
-    //     LIMIT 5
-    // `, [
-    //     user_id,
-    //     user_id,
-    //     user_id
-    // ]);
+    const friendSuggestion = await db.query(named(`
+        SELECT a.id, a.email, a.name, a.avatar
+        FROM users a
+        LEFT JOIN friends b ON (b.user_id = :user_id AND b.friend_id = a.id) OR (b.user_id = a.id AND b.friend_id = :user_id)
+        WHERE id <> :user_id
+        AND b.status IS NULL
+        AND IF(
+            :keyword IS NOT NULL AND :keyword <> '', 
+            (email LIKE :keyword), 
+            TRUE
+        )
+        LIMIT :size
+        OFFSET :from
 
-    const {body} = await ESClient.search({
-        index: 'ngendika_user',
-        body: {
-            query: {
-                bool: {
-                    must_not: {
-                        term: {id: user_id}
-                    },
-                    must: {
-                        term: {status: 1}
-                    }
-                }
-            },
-            from: from,
-            size: size
-        }
-    });
+    `)({user_id, keyword: `%${keyword}%`, size, from}));
+
+    // const {body} = await ESClient.search({
+    //     index: 'ngendika_user',
+    //     body: {
+    //         query: {
+    //             bool: {
+    //                 must_not: {
+    //                     term: {id: user_id}
+    //                 },
+    //                 must: [
+    //                     {
+    //                         wildcard : {
+    //                             email: `*${keyword}*`
+    //                         }
+    //                     },
+    //                     {
+    //                         term: {status: 1}
+    //                     }
+    //                 ]
+    //             }
+    //         },
+    //         from: from,
+    //         size: size
+    //     }
+    // });
 
     return res.json({
         success: true, 
         message: 'get friend suggestion success',
-        data: [...body.hits.hits].map(x => x._source)
+        data: friendSuggestion
     });
 });
 
 export const getFriends = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
+    let keyword = req.body.s ? req.body.s : '';
+    let from = req.body.from;
+    let size = req.body.size;
 
-    const friends = await db.query(`
-        SELECT b.id, b.email, b.name, b.avatar, if(a.user_id = ?, a.unread_user, a.unread_friend) as unread_chat
+    const friends = await db.query(named(`
+        SELECT b.id, b.email, b.name, b.avatar, if(a.user_id = :user_id, a.unread_user, a.unread_friend) as unread_chat
         FROM friends a
-        JOIN users b ON IF(a.user_id = ?, a.friend_id, a.user_id) = b.id
-        WHERE a.status=1 AND (a.user_id = ? OR a.friend_id = ?)
-    `, [
+        JOIN users b ON IF(a.user_id = :user_id, a.friend_id, a.user_id) = b.id
+        WHERE a.status=1 AND (a.user_id = :user_id OR a.friend_id = :user_id)
+        AND IF(
+            :keyword IS NOT NULL AND :keyword <> '', 
+            (email LIKE :keyword), 
+            TRUE
+        )
+        LIMIT :size
+        OFFSET :from 
+    `)({
         user_id,
-        user_id,
-        user_id,
-        user_id
-    ]);
+        keyword: `%${keyword}%`,
+        from,
+        size
+    }));
 
     return res.json({
         success: true, 
