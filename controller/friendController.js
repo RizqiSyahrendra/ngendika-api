@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import db from '../config/database.js';
 import dotenv from 'dotenv';
+import ESClient from '../config/elasticsearch.js';
 
 dotenv.config();
 
@@ -94,24 +95,44 @@ export const getFriendRequest = asyncHandler(async(req, res) => {
 
 export const getFriendSuggestion = asyncHandler(async(req, res) => {
     let user_id = req.user_login.id;
+    let from = req.body.from;
+    let size = req.body.size;
 
-    const friendSuggestion = await db.query(`
-        SELECT a.id, a.email, a.name, a.avatar
-        FROM users a
-        LEFT JOIN friends b ON (b.user_id = ? AND b.friend_id = a.id) OR (b.user_id = a.id AND b.friend_id = ?)
-        WHERE id <> ?
-        AND b.status IS NULL
-        LIMIT 5
-    `, [
-        user_id,
-        user_id,
-        user_id
-    ]);
+    // const friendSuggestion = await db.query(`
+    //     SELECT a.id, a.email, a.name, a.avatar
+    //     FROM users a
+    //     LEFT JOIN friends b ON (b.user_id = ? AND b.friend_id = a.id) OR (b.user_id = a.id AND b.friend_id = ?)
+    //     WHERE id <> ?
+    //     AND b.status IS NULL
+    //     LIMIT 5
+    // `, [
+    //     user_id,
+    //     user_id,
+    //     user_id
+    // ]);
+
+    const {body} = await ESClient.search({
+        index: 'ngendika_user',
+        body: {
+            query: {
+                bool: {
+                    must_not: {
+                        term: {id: user_id}
+                    },
+                    must: {
+                        term: {status: 1}
+                    }
+                }
+            },
+            from: from,
+            size: size
+        }
+    });
 
     return res.json({
         success: true, 
         message: 'get friend suggestion success',
-        data: friendSuggestion
+        data: [...body.hits.hits].map(x => x._source)
     });
 });
 
