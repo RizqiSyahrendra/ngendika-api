@@ -1,5 +1,5 @@
 # ngendika-api
-Ngendika API is an API for Ngendika : <br>
+Ngendika API is a Rest API for Ngendika : <br>
 https://github.com/RizqiSyahrendra/ngendika
 
 ### Features
