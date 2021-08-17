@@ -1,5 +1,6 @@
 # ngendika-api
-Ngendika API is an API for Ngendika Simple Chat Application.
+Ngendika API is an API for Ngendika : <br>
+https://github.com/RizqiSyahrendra/ngendika
 
 ### Features
 1. Register
