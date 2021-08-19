@@ -11,11 +11,12 @@ https://github.com/RizqiSyahrendra/ngendika
 
 ### Installation
 1. Create .env file from .env.example, change everything you need
-2. Install NPM packages
+2. Import db_ngendika.sql
+3. Install NPM packages
    ```sh
    npm install
    ```
-3. Run
+4. Run
    ```sh
    npm start
    ```
